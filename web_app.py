@@ -78,40 +78,25 @@ def parse_schedule(text):
     schedule = []
     if not lines: return schedule
     
-    # Kiểm tra xem có phải định dạng bảng (TSV/Excel) không
-    if 'Arrival' in lines[0] or '\t' in lines[0] or (len(lines)>1 and '\t' in lines[1]):
-        for line in lines:
-            line = line.strip()
-            if not line or 'Vessel Name' in line:
-                continue
-            parts = line.split('\t')
-            if len(parts) >= 3:
-                v_name = parts[0].strip()
-                # Ghép Vessel Voyage nếu cột thứ 2 không phải là ngày tháng
-                if len(parts) >= 4 and not re.search(r'\d{1,2}/\d{1,2}', parts[1]):
-                    v_name += f" {parts[1].strip()}"
-                    etb = parts[2].strip()
-                    etd = parts[3].strip() if len(parts) > 3 else ""
-                else:
-                    etb = parts[1].strip()
-                    etd = parts[2].strip()
-                    
-                schedule.append({
-                    'VesselName': v_name,
-                    'ETA': '',
-                    'ETB': etb,
-                    'ETD': etd
-                })
-        return schedule
-
-    # Logic cũ nếu là dạng text tự do
     current_vessel = None
     time_pattern = re.compile(r'^(ETA|ETB|ETD)\s*[:\-]?\s*(.+)$', re.IGNORECASE)
     ignore_pattern = re.compile(r'^(Disch|Load|Discharge|POB)\b', re.IGNORECASE)
     
+    # Mẫu regex để tìm ra ngày tháng, hỗ trợ cả định dạng mới (Sun 21/06/2026 19:00) và cũ (24th Jun/2100LT)
+    datetime_pattern = re.compile(
+        r'('
+        r'(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+)?\d{1,2}/\d{1,2}(?:/\d{2,4})?\s+\d{1,2}:\d{2}'
+        r'|'
+        r'\d{1,2}(?:st|nd|rd|th)?\s*[a-zA-Z]{3,}[^\d]*\d{4}(?:LT|lt|Lt)?'
+        r')', re.IGNORECASE
+    )
+    
     for line in lines:
         line = line.strip()
-        if not line: continue
+        if not line or 'Vessel Name' in line:
+            continue
+            
+        # Kiểm tra nếu là dòng bắt đầu bằng ETA, ETB, ETD (Cấu trúc cũ)
         time_match = time_pattern.match(line)
         if time_match:
             key, val = time_match.groups()
@@ -121,11 +106,37 @@ def parse_schedule(text):
         elif ignore_pattern.match(line):
             continue
         else:
-            if current_vessel:
-                schedule.append(current_vessel)
-            current_vessel = {'VesselName': line, 'ETA': '', 'ETB': '', 'ETD': ''}
+            # Tìm tất cả các cụm ngày giờ trong dòng
+            dates = list(datetime_pattern.finditer(line))
+            if len(dates) >= 1:
+                # Nếu có ngày giờ -> Đây là một dòng dữ liệu tàu (Bảng)
+                # Tên tàu là tất cả những chữ nằm trước cụm ngày giờ đầu tiên
+                v_name = line[:dates[0].start()].strip()
+                v_name = " ".join(v_name.split())
+                if v_name.upper().startswith("VESSEL:"):
+                    v_name = v_name[7:].strip()
+                    
+                if v_name:
+                    schedule.append({
+                        'VesselName': v_name,
+                        'ETA': '',
+                        'ETB': dates[0].group().strip(),
+                        'ETD': dates[1].group().strip() if len(dates) > 1 else ''
+                    })
+            else:
+                # Nếu không có ngày giờ nào -> Đây có thể là tên tàu đứng một mình (Cấu trúc cũ)
+                if current_vessel:
+                    schedule.append(current_vessel)
+                
+                v_name = line
+                if v_name.upper().startswith("VESSEL:"):
+                    v_name = v_name[7:].strip()
+                    
+                current_vessel = {'VesselName': v_name, 'ETA': '', 'ETB': '', 'ETD': ''}
+                
     if current_vessel:
         schedule.append(current_vessel)
+        
     return schedule
 
 def compare_schedules(sched_old, sched_new):
