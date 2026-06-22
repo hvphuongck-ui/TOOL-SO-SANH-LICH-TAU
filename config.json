@@ -1,0 +1,37 @@
+{
+    "service_rules": {
+        "FYA": "AFRICA EXPRESS",
+        "GUW": "AMERICA",
+        "QBW": "BRITANNIA",
+        "UKA": "CHINOOK",
+        "GNE": "LONE STAR EXPRESS",
+        "FVN": "SENTOSA"
+    },
+    "service_colors": {
+        "AFRICA EXPRESS": "#99FF99",
+        "AMERICA": "#C00000",
+        "BRITANNIA": "#FBD5B5",
+        "CHINOOK": "#6BA5DA",
+        "LONE STAR EXPRESS": "#E6E0CB",
+        "SENTOSA": "#9BBB59",
+        "EMERALD": "#FF9999",
+        "SAMBAR": "#4F81BD",
+        "ADHOC": "#7030A0"
+    },
+    "vessels_loa": {
+        "MSC MAPUTO": 272,
+        "MSC MIA": 400,
+        "MSC HAMBURG": 399,
+        "MSC LORENZA": 366,
+        "ZIM MOUNT DENALI": 366,
+        "ZIM MOUNT BLANC": 366,
+        "HAIAN BETA": 172,
+        "MSC CHIARA X": 347,
+        "MSC MICHELLE": 400,
+        "MSC FATMA": 366,
+        "MSC DARLENE": 366
+    },
+    "default_color": "#D3D3D3",
+    "default_loa": 300,
+    "last_export_dir": "C:/Users/phhuynh/Downloads"
+}
