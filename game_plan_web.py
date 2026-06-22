@@ -53,7 +53,12 @@ if st.button("🚀 Xử lý và Tạo File Excel", use_container_width=True):
                 if success:
                     # Tạo file PDF
                     pdf_path = os.path.join(temp_dir, "Game_Plan.pdf")
-                    generate_pdf(vessels_data, pdf_path)
+                    pdf_success = False
+                    try:
+                        generate_pdf(vessels_data, pdf_path)
+                        pdf_success = True
+                    except Exception as e:
+                        print(f"PDF Error: {e}")
                     
                     if missing_info and missing_info.get("services"):
                         st.warning("⚠️ Đã tạo thành công, nhưng có một số tàu bị thiếu thông tin Service (hệ thống không tự nhận diện được):")
