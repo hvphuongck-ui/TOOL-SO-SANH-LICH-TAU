@@ -1,17 +1,30 @@
 from reportlab.pdfgen import canvas
-from reportlab.lib.colors import toColor, black, white
+from reportlab.lib.colors import Color, black, white
 from datetime import timedelta
 import math
 import os
 
+def hex_to_color(hex_str):
+    if not isinstance(hex_str, str): return Color(0,0,0,1)
+    hex_str = hex_str.lstrip('#').strip()
+    if len(hex_str) != 6: return Color(0,0,0,1)
+    try:
+        return Color(int(hex_str[0:2],16)/255.0, int(hex_str[2:4],16)/255.0, int(hex_str[4:6],16)/255.0, 1)
+    except:
+        return Color(0,0,0,1)
+
 def get_contrast_color(hex_color):
-    hex_color = hex_color.lstrip('#')
-    if not hex_color or len(hex_color) != 6: return "#000000"
-    r = int(hex_color[0:2], 16)
-    g = int(hex_color[2:4], 16)
-    b = int(hex_color[4:6], 16)
-    luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-    return "#000000" if luminance > 0.5 else "#FFFFFF"
+    if not isinstance(hex_color, str): return "#000000"
+    hex_color = hex_color.lstrip('#').strip()
+    if len(hex_color) != 6: return "#000000"
+    try:
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+        return "#000000" if luminance > 0.5 else "#FFFFFF"
+    except:
+        return "#000000"
 
 def generate_pdf(vessels, output_path):
     if not vessels: return False
@@ -41,12 +54,12 @@ def generate_pdf(vessels, output_path):
     c = canvas.Canvas(output_path, pagesize=(total_width, total_height))
     
     def draw_rect(x, y, w, h, bg="#FFFFFF", border="#000000"):
-        c.setFillColor(toColor(bg))
-        c.setStrokeColor(toColor(border))
+        c.setFillColor(hex_to_color(bg))
+        c.setStrokeColor(hex_to_color(border))
         c.rect(x, total_height - y - h, w, h, fill=1, stroke=1)
         
     def draw_text(x, y, w, h, text, font_size=9, color="#000000", bold=True, is_header=False):
-        c.setFillColor(toColor(color))
+        c.setFillColor(hex_to_color(color))
         if bold:
             c.setFont("Helvetica-Bold", font_size)
         else:
@@ -100,7 +113,7 @@ def generate_pdf(vessels, output_path):
         for hour in range(2, 24, 2):
             line_y = y + hour * px_per_hour
             color = '#A0A0A0' if hour == 12 else '#E0E0E0'
-            c.setStrokeColor(toColor(color))
+            c.setStrokeColor(hex_to_color(color))
             c.line(date_col_width_px, total_height - line_y, date_col_width_px + col_bouy_width_px + cols_berth*col_berth_width_px, total_height - line_y)
 
     # Calculate overlaps (Same logic as Excel generator)
