@@ -1,5 +1,5 @@
 from reportlab.pdfgen import canvas
-from reportlab.lib.colors import HexColor, black, white
+from reportlab.lib.colors import toColor, black, white
 from datetime import timedelta
 import math
 import os
@@ -41,12 +41,12 @@ def generate_pdf(vessels, output_path):
     c = canvas.Canvas(output_path, pagesize=(total_width, total_height))
     
     def draw_rect(x, y, w, h, bg="#FFFFFF", border="#000000"):
-        c.setFillColor(HexColor(bg))
-        c.setStrokeColor(HexColor(border))
+        c.setFillColor(toColor(bg))
+        c.setStrokeColor(toColor(border))
         c.rect(x, total_height - y - h, w, h, fill=1, stroke=1)
         
     def draw_text(x, y, w, h, text, font_size=9, color="#000000", bold=True, is_header=False):
-        c.setFillColor(HexColor(color))
+        c.setFillColor(toColor(color))
         if bold:
             c.setFont("Helvetica-Bold", font_size)
         else:
@@ -100,7 +100,7 @@ def generate_pdf(vessels, output_path):
         for hour in range(2, 24, 2):
             line_y = y + hour * px_per_hour
             color = '#A0A0A0' if hour == 12 else '#E0E0E0'
-            c.setStrokeColor(HexColor(color))
+            c.setStrokeColor(toColor(color))
             c.line(date_col_width_px, total_height - line_y, date_col_width_px + col_bouy_width_px + cols_berth*col_berth_width_px, total_height - line_y)
 
     # Calculate overlaps (Same logic as Excel generator)
