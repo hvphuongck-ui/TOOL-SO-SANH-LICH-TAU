@@ -108,7 +108,14 @@ def generate_pdf(vessels, output_path):
             line_y = y + hour * px_per_hour
             color = '#A0A0A0' if hour == 12 else '#E0E0E0'
             c.setStrokeColor(hex_to_color(color))
+            c.setLineWidth(0.5)
             c.line(date_col_width_px, total_height - line_y, date_col_width_px + col_bouy_width_px + cols_berth*col_berth_width_px, total_height - line_y)
+            
+        # Draw 0h solid black line
+        c.setStrokeColor(hex_to_color("#000000"))
+        c.setLineWidth(1.5)
+        c.line(date_col_width_px, total_height - y, date_col_width_px + col_bouy_width_px + cols_berth*col_berth_width_px, total_height - y)
+        c.setLineWidth(1.0) # Reset line width
 
     placed_ships = []
     for v in vessels:
