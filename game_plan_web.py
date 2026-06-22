@@ -12,6 +12,7 @@ try:
     from parser import parse_schedule_text
     import config_manager
     from game_plan_generator import generate_game_plan
+    from pdf_generator import generate_pdf
 except ImportError as e:
     st.error(f"Lỗi khi import thư viện cốt lõi: {e}")
     st.stop()
@@ -50,6 +51,10 @@ if st.button("🚀 Xử lý và Tạo File Excel", use_container_width=True):
                 success, msg, missing_info = generate_game_plan(vessels_data, config, output_path)
                 
                 if success:
+                    # Tạo file PDF
+                    pdf_path = os.path.join(temp_dir, "Game_Plan.pdf")
+                    generate_pdf(vessels_data, pdf_path)
+                    
                     if missing_info and missing_info.get("services"):
                         st.warning("⚠️ Đã tạo thành công, nhưng có một số tàu bị thiếu thông tin Service (hệ thống không tự nhận diện được):")
                         for srv in missing_info["services"]:
@@ -57,16 +62,31 @@ if st.button("🚀 Xử lý và Tạo File Excel", use_container_width=True):
                     else:
                         st.success("✅ Tuyệt vời! Đã vẽ xong sơ đồ Game Plan.")
                     
-                    # Đọc file để tải về
-                    with open(output_path, "rb") as f:
-                        file_data = f.read()
-                        
-                    st.download_button(
-                        label="📥 TẢI FILE EXCEL VỀ MÁY",
-                        data=file_data,
-                        file_name="Game_Plan_Berth_Chart.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        use_container_width=True
-                    )
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        # Đọc file để tải về
+                        with open(output_path, "rb") as f:
+                            file_data = f.read()
+                            
+                        st.download_button(
+                            label="📥 TẢI FILE EXCEL",
+                            data=file_data,
+                            file_name="Game_Plan_Berth_Chart.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            use_container_width=True
+                        )
+                    with col2:
+                        try:
+                            with open(pdf_path, "rb") as f:
+                                pdf_data = f.read()
+                            st.download_button(
+                                label="📥 TẢI FILE PDF (1 Trang)",
+                                data=pdf_data,
+                                file_name="Game_Plan_Berth_Chart.pdf",
+                                mime="application/pdf",
+                                use_container_width=True
+                            )
+                        except Exception as e:
+                            st.error("Lỗi xuất PDF")
                 else:
                     st.error(f"❌ Lỗi khi tạo file: {msg}")
